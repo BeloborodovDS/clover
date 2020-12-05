@@ -1,3 +1,20 @@
+## SLAM
+
+```
+cd catkin_ws/src/
+
+git clone https://github.com/appliedAI-Initiative/orb_slam_2_ros.git
+
+cd /home/pi/catkin_ws
+
+source /opt/ros/melodic/setup.bash
+
+catkin_make -j2 -DCMAKE_BUILD_TYPE=Release -DCATKIN_BLACKLIST_PACKAGES=clover_gazebo_plugins
+
+roslaunch clover slam.launch
+```
+
+
 # clover🍀: create autonomous drones easily
 
 <img src="docs/assets/clover42-main.png" align="right" width="400px" alt="COEX Clover Drone">
