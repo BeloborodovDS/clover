@@ -17,6 +17,7 @@
 #define TRACKING_MAX_AGE     0
 #define TRACKING_MIN_HITS    5
 #define TRACKING_MIN_IOU     0.05
+#define TRACKING_NUM_COLORS  10
 
 using namespace cv;
 using namespace human_detection;
@@ -52,7 +53,9 @@ void getDetectionBoxes(const float* predictions, int numPred, float thresh,
 
 class Detection {
 public:
-    Detection(ros::NodeHandle &n);
+    Detection(ros::NodeHandle &n, bool debug);
+
+    ~Detection();
 
     void imageCallback(const sensor_msgs::ImageConstPtr& inputMsg);
   
@@ -65,10 +68,14 @@ public:
     int count;
     int64 start;
     Mat dataMat;
+
+    Scalar_<int> *colors;
+    bool isDebug;
+    image_transport::Publisher debugPub;
 };
 
-Detection::Detection(ros::NodeHandle &n) {
-    pub = n.advertise<DetectionList>("human_detection", 1);
+Detection::Detection(ros::NodeHandle &n, bool debug) {
+    pub = n.advertise<DetectionList>("detection/human_detection", 1);
     
     ncs = NCSWrapper(false);
     std::string modelPath = ros::package::getPath("human_detection") + "/data/human_vino";
@@ -85,6 +92,23 @@ Detection::Detection(ros::NodeHandle &n) {
     count = 0;
     start = getTickCount();
     dataMat = Mat(H, W, CV_8UC3);
+
+    isDebug = debug;
+    if (isDebug) {
+        RNG rng(0xFFFFFFFF);
+        colors = new Scalar_<int>[TRACKING_NUM_COLORS];
+        for (int i = 0; i < TRACKING_NUM_COLORS; i++) {
+            rng.fill(colors[i], RNG::UNIFORM, 0, 256);
+        }
+        image_transport::ImageTransport it(n);
+        debugPub = it.advertise("detection/debug_image", 1);
+    }
+}
+
+Detection::~Detection() {
+    if (isDebug) {
+        delete[] colors;
+    }
 }
 
 void Detection::imageCallback(const sensor_msgs::ImageConstPtr& inputMsg) {
@@ -134,13 +158,26 @@ void Detection::imageCallback(const sensor_msgs::ImageConstPtr& inputMsg) {
             outputMsg.detections.push_back(box);
         }
 
+        if (trackVector.size() > 0) {
+            pub.publish(outputMsg);
+        }
+
+        if (isDebug) {
+            for (int i = 0; i < trackVector.size(); i++) {
+                Scalar_<int> intcol = colors[trackVector[i].id % TRACKING_NUM_COLORS];
+                Scalar col = Scalar(intcol[0], intcol[1], intcol[2]);
+                Rect_<float> box = trackVector[i].box;
+                Rect_<float> scaledBox = Rect_<float>(
+                    box.x * W, box.y * H, box.width * W, box.height * H);
+                rectangle(dataMat, scaledBox, col, 3);
+            }
+            sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", dataMat).toImageMsg();
+            debugPub.publish(msg);
+        }
+
         if (count > 0 and count % 300 == 0) {
             double time = (getTickCount() - start) / getTickFrequency();
             ROS_INFO("Detection node: FPS   %f", count / time);
-        }
-
-        if (trackVector.size() > 0) {
-            pub.publish(outputMsg);
         }
         count++;
     } catch (cv_bridge::Exception& e) {
@@ -152,7 +189,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "human_detection");
     ros::NodeHandle n;
 
-    Detection detection = Detection(n);
+    Detection detection = Detection(n, true);
 
     image_transport::ImageTransport it(n);
     image_transport::Subscriber sub = it.subscribe(
