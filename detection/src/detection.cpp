@@ -53,7 +53,7 @@ void getDetectionBoxes(const float* predictions, int numPred, float thresh,
 
 class Detection {
 public:
-    Detection(ros::NodeHandle &n, bool debug);
+    Detection(ros::NodeHandle &n);
 
     ~Detection();
 
@@ -74,7 +74,7 @@ public:
     image_transport::Publisher debugPub;
 };
 
-Detection::Detection(ros::NodeHandle &n, bool debug) {
+Detection::Detection(ros::NodeHandle &n) {
     pub = n.advertise<DetectionList>("detection/human_detection", 1);
     
     ncs = NCSWrapper(false);
@@ -93,7 +93,14 @@ Detection::Detection(ros::NodeHandle &n, bool debug) {
     start = getTickCount();
     dataMat = Mat(H, W, CV_8UC3);
 
-    isDebug = debug;
+    isDebug = false;
+    ros::param::get("~debug", isDebug);
+    if (isDebug) {
+        ROS_INFO_STREAM("Debug mode");
+    } else {
+        ROS_INFO_STREAM("Regular mode");
+    }
+
     if (isDebug) {
         RNG rng(0xFFFFFFFF);
         colors = new Scalar_<int>[TRACKING_NUM_COLORS];
@@ -189,7 +196,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "human_detection");
     ros::NodeHandle n;
 
-    Detection detection = Detection(n, true);
+    Detection detection = Detection(n);
 
     image_transport::ImageTransport it(n);
     image_transport::Subscriber sub = it.subscribe(

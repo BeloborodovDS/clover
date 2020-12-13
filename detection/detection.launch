@@ -1,3 +1,5 @@
 <launch>
-    <node pkg="human_detection" type="detection_node" name="human_detection" output="screen"/>
+    <node pkg="human_detection" type="detection_node" name="human_detection" output="screen">
+        <param name="debug" value="true"/>
+    </node>
 </launch>
