@@ -1,0 +1,1 @@
+rm ./data/human_vino.xml; rm ./data/human_vino.bin

@@ -14,7 +14,7 @@
 #include "image_transport/image_transport.h"
 #include "cv_bridge/cv_bridge.h"
 
-#define TRACKING_MAX_AGE     0
+#define TRACKING_MAX_AGE     1
 #define TRACKING_MIN_HITS    5
 #define TRACKING_MIN_IOU     0.05
 #define TRACKING_NUM_COLORS  10
