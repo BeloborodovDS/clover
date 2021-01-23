@@ -35,7 +35,7 @@ Slam::~Slam() {
 
 Slam::Slam(ros::NodeHandle &n) {
     const std::string vocPath = ros::package::getPath("orb_slam3") + "/submodules/ORB_SLAM3/Vocabulary/ORBvoc.txt";
-    const std::string settingsPath = ros::package::getPath("orb_slam3") + "/settings.txt";
+    const std::string settingsPath = ros::package::getPath("orb_slam3") + "/settings.yaml";
     system = new ORB_SLAM3::System(vocPath, settingsPath, ORB_SLAM3::System::MONOCULAR, true);
 
     ROS_INFO_STREAM("SLAM node: loaded vocabulary " + vocPath);

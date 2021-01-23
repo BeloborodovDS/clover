@@ -1,0 +1,6 @@
+<launch>
+    <env name="LD_LIBRARY_PATH" value="$(env LD_LIBRARY_PATH):$(find orb_slam3)/submodules/ORB_SLAM3"/>
+    <node pkg="orb_slam3" type="slam_mono" name="slam_mono" output="screen">
+        <param name="debug" value="true"/>
+    </node>
+</launch>
