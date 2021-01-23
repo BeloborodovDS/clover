@@ -1,3 +1,6 @@
 [submodule "detection/submodules/sort-cpp"]
 	path = detection/submodules/sort-cpp
 	url = https://github.com/BeloborodovDS/sort-cpp
+[submodule "slam/submodules/ORB_SLAM3"]
+	path = slam/submodules/ORB_SLAM3
+	url = https://github.com/BeloborodovDS/ORB_SLAM3
